@@ -1,19 +1,11 @@
-var AWS = require("aws-sdk");
 var request = require('request');
-
-AWS.config.update({
-    region: '',            // X-Chnage
-    endpoint: "",          // X-Chnage
-    accessKeyId: '',       // X-Chnage
-    secretAccessKey: ''    // X-Chnage
-});
-var docClient = new AWS.DynamoDB.DocumentClient();
 
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var schemaProjects = new Schema({
     UserID: Schema.ObjectId,
     name: String,
+    projectID : Number,
     desc: String,
     appID: Number,
     appKey: String,
@@ -21,42 +13,27 @@ var schemaProjects = new Schema({
     slots: Array
 });
 var schemaDevices = new Schema({
-    appID: Number,
     name: String,
     online: Boolean,
     lastOnline: Date,
-    color: String,
+    environment: String,
+    projectID: Schema.ObjectId,
+    time: Date,
+    value: String,
     lat: Number,
     lon: Number
 });
 var schemaReacts = new Schema({
-    UserID: Schema.ObjectId,
-    appID: Number,
-    actID: Number,
-    name: String,
-    desc: String,
-    slot: String,
     sms: Boolean,
     phone: String,
-    compare: String,
     threshold: Number,
     status: Boolean,
     email: String,
     subject: String,
-    message: String,
-});
-var schemaReactLogs = new Schema({
-    actID: Number,
-    actionTime: Date,
-    email: String,
-    subject: String,
-    message: String,
-    success: Boolean,
-    UserID: Schema.ObjectId
+    message: String
 });
 
 var Reacts = mongoose.model('reacts', schemaReacts);
-var ReactLogs = mongoose.model('reactlogs', schemaReactLogs);
 var Devices = mongoose.model('devices', schemaDevices);
 var Projects = mongoose.model('projects', schemaProjects);
 
@@ -164,7 +141,7 @@ var authenticate = function(client, username, password, callback) {
             callback(null, authorized);
         });
     });
-}	
+}
 
 // In this case the client authorized as alice can publish to /users/alice taking
 // the username from the topic and verifing it is the same of the authorized user
@@ -184,7 +161,7 @@ var updateDeviceData = function(appID, name, status, lat, lon, color){
     if(color == '') color = '#0099FF';
     if(isNaN(lat)) lat = null;
     if(isNaN(lon)) lon = null;
-    Devices.findOne({appID:Number(appID),name:name}).exec(function(err, device) {   
+    Devices.findOne({appID:Number(appID),name:name}).exec(function(err, device) {
         if (err) throw err;
         if(device == null) {
             //Add new Devices
@@ -208,7 +185,7 @@ var updateDeviceData = function(appID, name, status, lat, lon, color){
             device.lastOnline = new Date();
             device.save(function(error){});
         }
-    });	
+    });
 }
 
 //here we start mosca
@@ -275,7 +252,7 @@ server.on('published', function(packet, client) {
                         if(client.reacts[topic]["sms"] == true) {
                             console.log("send SMS");
                             var input = {'method': 'send', 'username': 'gipsic', 'password': '498ef8', 'from': "NOTICE", 'to':client.reacts[topic]["phone"], 'message':client.reacts[topic]["message"] };
-                            request.post({url:'http://www.thsms.com/api/rest', form: input}, function(error, response, body){ 
+                            request.post({url:'http://www.thsms.com/api/rest', form: input}, function(error, response, body){
                                 console.log("send sms");
                             });
                         } else {
@@ -300,6 +277,3 @@ server.on('subscribed', function(topic, client) {
 server.on('unsubscribed', function(topic, client) {
     console.log('unsubscribed : ', topic);
 });
-
-
-
