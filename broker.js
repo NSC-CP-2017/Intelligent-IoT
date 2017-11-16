@@ -52,9 +52,9 @@ var settings = {
     id:"SIoTP",
     interfaces: [
         { type: "mqtt", port: 8080 },
-        { type: "mqtts", port: 8082, credentials: { keyPath: SECURE_KEY, certPath: SECURE_CERT } },
-        { type: "http", port: 8081, bundle: true },
-        { type: "https", port: 8083, bundle: true, credentials: { keyPath: SECURE_KEY, certPath: SECURE_CERT } }
+      //  { type: "mqtts", port: 8082, credentials: { keyPath: SECURE_KEY, certPath: SECURE_CERT } },
+        { type: "http", port: 8081, bundle: true }
+       // { type: "https", port: 8083, bundle: true, credentials: { keyPath: SECURE_KEY, certPath: SECURE_CERT } }
     ],
     backend: {
         type: 'mongo',
@@ -207,7 +207,7 @@ function setup() {
 
 // fired whena  client is connected
 server.on('clientConnected', function(client) {
-    //console.log('client connected', client.id);
+    console.log('client connected', client.id);
     updateDeviceData(Number(client.path), client.id, true, null, null, null);
 });
 
