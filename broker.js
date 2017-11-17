@@ -24,19 +24,21 @@ var schemaDevices = new Schema({
     lon: Number
 });
 var schemaReacts = new Schema({
-    UserID: Schema.ObjectId,
-	  appID: Number,
-	  actID: Number,
-	  slot: String,
     sms: Boolean,
     phone: String,
-	  compare: String,
     threshold: Number,
     status: Boolean,
     email: String,
     subject: String,
     message: String
 });
+var pubsubsettings = {
+    //using ascoltatore
+    type: 'mongo',		
+    url: 'mongodb://localhost:27017/mqtt',
+    pubsubCollection: 'ascoltatori',
+    mongo: {}
+  };
 
 var Reacts = mongoose.model('reacts', schemaReacts);
 var Devices = mongoose.model('devices', schemaDevices);
@@ -65,18 +67,18 @@ var settings = {
 };
 
 
-// var nodemailer = require('nodemailer');
+var nodemailer = require('nodemailer');
 // create reusable transporter object using the default SMTP transport
-// var smtpConfig = {
-//     "host": "",       // X-Chnage
-//     "port": 465,      // X-Chnage
-//     "secure": true,   // X-Chnage
-//     auth: {
-//         user: '',     // X-Chnage
-//         pass: ''      // X-Chnage
-//     }
-// };
-// var transporter = nodemailer.createTransport(smtpConfig);
+var smtpConfig = {
+    "host": "",       // X-Chnage
+    "port": 465,      // X-Chnage
+    "secure": true,   // X-Chnage
+    auth: {
+        user: '',     // X-Chnage
+        pass: ''      // X-Chnage
+    }
+};
+var transporter = nodemailer.createTransport(smtpConfig);
 
 function operator(t,a,b){
     if(t=="gt"){
@@ -96,23 +98,23 @@ function operator(t,a,b){
     }
 }
 
-// function sendMail(to,subject,message){
-//     if(typeof to == 'undefined' || to == '') return false;
-//     var mailOptions = {
-//         from: '"Smart ReActs" <react@iot-chula.com>',
-//         to: to+",wisit@gipsic.com",
-//         subject: subject,
-//         html: message
-//     };
-//     transporter.sendMail(mailOptions, function(error, info){
-//         if(error){
-//             console.log(error);
-//             return false;
-//         }
-//         console.log('Message sent: ' + info.response);
-//         return true;
-//     });
-// }
+function sendMail(to,subject,message){
+    if(typeof to == 'undefined' || to == '') return false;
+    var mailOptions = {
+        from: '"Smart ReActs" <react@iot-chula.com>',
+        to: to+",wisit@gipsic.com",
+        subject: subject,
+        html: message
+    };
+    transporter.sendMail(mailOptions, function(error, info){
+        if(error){
+            console.log(error);
+            return false;
+        }
+        console.log('Message sent: ' + info.response);
+        return true;
+    });
+}
 
 // Accepts the connection if the username and password are valid
 var authenticate = function(client, username, password, callback) {
@@ -207,7 +209,7 @@ function setup() {
 
 // fired whena  client is connected
 server.on('clientConnected', function(client) {
-    console.log('client connected', client.id);
+    //console.log('client connected', client.id);
     updateDeviceData(Number(client.path), client.id, true, null, null, null);
 });
 
