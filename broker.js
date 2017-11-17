@@ -247,30 +247,7 @@ server.on('published', function(packet, client) {
                 "device":  client.id,
             }
         };
-
-        docClient.put(params, function(err, data) {
-            if (err) {
-                console.error("Unable to add data", params.Item, ". Error JSON:", JSON.stringify(err, null, 2));
-            } else {
-                if(typeof client.reacts[topic] != 'undefined' && !isNaN(num)){
-                    if(operator(client.reacts[topic]["compare"],Number(num),Number(client.reacts[topic]["threshold"]))){
-                        if(client.reacts[topic]["sms"] == true) {
-                            console.log("send SMS");
-                            var input = {'method': 'send', 'username': 'gipsic', 'password': '498ef8', 'from': "NOTICE", 'to':client.reacts[topic]["phone"], 'message':client.reacts[topic]["message"] };
-                            request.post({url:'http://www.thsms.com/api/rest', form: input}, function(error, response, body){
-                                console.log("send sms");
-                            });
-                        } else {
-                            sendMail(client.reacts[topic]["email"],client.reacts[topic]["subject"],client.reacts[topic]["message"]);
-                        }
-                        console.log("Matched "+topic+ " "+num+ " "+client.reacts[topic]["compare"]+ " "+client.reacts[topic]["threshold"]);
-                    }
-                }
-            }
-        });
     }
-
-
 });
 
 // fired when a client subscribes to a topic
