@@ -1,6 +1,5 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
-var Reacts = require('./models/Reacts');
 var Projects = require('./models/Projects');
 var Devices = require('./models/Devices');
 
@@ -22,89 +21,87 @@ var moscaSettings = {
 
 var server = new mosca.Server(moscaSettings);
 
-var updateDevice = function(deviceID,name,value,lat,lon){
-    if (isNaN(deviceID)) return;
-    Devices.findOne({deviceID:Number(deviceID)}).exec(function(err,device){
-        if (device != null){
-            console.log('found');
-            device.value = value;
-            device.lat = lat+0;
-            device.lon = lon+0;
-            device.save()
-        }
-        else {
-            console.log('not found');
-            var device = new Devices({
-                name: name,
-                deviceID: Number(deviceID),
-                online: true,
-                lastOnline: null,
-                environment: null,
-                time: null,
-                value: value,
-                lat: lat,
-                lon: lon
-            });
-            device.save(function(err,device){
-                if(err){
-                    console.log(err);
-                }
-                else {
-                    console('new device is saved');
-                }
-            });
-        }
-    });
-};
-
 server.on('ready', setup);
 
-server.on('clientConnected', function(client) {
-	console.log('client connected', client.id);		
-});
-
-// fired when a message is received
-server.on('published', function(packet, client) {
-  console.log('Published', packet.payload.toString());
-  var msg = packet.payload.toString().split(',');
-  console.log(msg);
-  updateDevice(msg[0],msg[1],msg[2],msg[3],msg[4]);
-});
-
-// fired when a client subscribes to a topic
-server.on('subscribed', function(topic, client) {
-    console.log('subscribed : ', topic);
-});
-
-// fired when a client subscribes to a topic
-server.on('unsubscribed', function(topic, client) {
-    console.log('unsubscribed : ', topic);
-});
-
-// Accepts the connection if the username and password are valid
-var authenticate = function(client, username, password, callback) {
-    var authorized = ((username === 'kamekame' && password.toString() === 'secret'))||(username === 'a bc' && password.toString() === 'secret'));
-    if (!authorized) return callback(null, authorized);
-    client.user = username;
-    callback(null, authorized);
+var updateDeviceData = function(deviceID,value,lat,lon){
+    Devices.findOne({deviceID:deviceID}).exec(function(err,device){
+        var date = new Date();
+        device['data'].push({'value': value,'date': date});
+        device['position'].push({'date': date,'lat': lat,'lon': lon});
+        device.save((err)=>{console.log(err);});
+    });
 };
-  
+var setDeviceOnline = function(deviceID,isOnline){
+    Devices.findOne({deviceID:deviceID}).exec(function(err,device){
+        device['online'] = isOnline;
+        device['lastOnline'] = new Date();
+        device.save((err)=>{console.log(err);});
+    });
+}
+
+//Accepts the connection if the username and password are valid
+var authenticate = function(client, username, password, callback) {
+    console.log('authentication...')
+    var authorized = false; 
+    //console.log("deviceID:",username.toString().trim(),"  deviceKey:",password.toString().trim());
+    Devices.findOne({deviceID:username.toString().trim(),deviceKey:password.toString().trim()},function(err,device){
+        if (device !== null){
+            authorized = true;
+            client.deviceID = username.toString().trim();
+        }
+        if (authorized) console.log(client.id,'is authorized');
+        else console.log(client.id,'is not authorized');
+        callback(null, authorized);
+    });
+};
 // In this case the client authorized as alice can publish to /users/alice taking
 // the username from the topic and verifing it is the same of the authorized user
 var authorizePublish = function(client, topic, payload, callback) {
-    callback(null, client.user == topic.split('/')[1]);
+    var topic = topic.split('/');
+    //console.log("deviceID : ",client.deviceID);
+    //console.log(topic);
+    //console.log('authorize published :',client.deviceID == topic[0] && 'publish' == topic[1]);
+    callback(null, client.deviceID === topic[0] && 'publish' === topic[1]);
 };
-
+  
 // In this case the client authorized as alice can subscribe to /users/alice taking
 // the username from the topic and verifing it is the same of the authorized user
 var authorizeSubscribe = function(client, topic, callback) {
-    callback(null, client.user == topic.split('/')[1]);
+    var topic = topic.split('/');
+    callback(null, client.deviceID == topic[0] && 'subscribe' == topic[1]);
 };
+
+server.on('clientConnected', function(client) {
+    console.log('client connected :',client.id);	
+    setDeviceOnline(client.deviceID,true);	
+});
+
+server.on('clientDisconnected', function(client) {
+    console.log('clientDisconnected : ', client.id);
+    setDeviceOnline(client.deviceID,false);
+});
 
 // fired when the mqtt server is ready
 function setup() {
     server.authenticate = authenticate;
     server.authorizePublish = authorizePublish;
-    server.authorizeSubscribe = authorizeSubscribe;
+    // server.authorizeSubscribe = authorizeSubscribe;
     console.log('Server is up and running on Port:1883')
 };
+
+// fired when a message is received
+server.on('published', function(packet, client) {  
+    var topic = packet.topic.split('/');
+    if (topic[1] == 'publish'){
+        var data = JSON.parse(packet.payload.toString());
+        updateDeviceData(topic[0],data["value"],data["lat"],data["lon"]);
+    }
+});
+
+server.on('subscribed', function(topic, client) {
+    console.log('subscribed : ', topic);
+});
+
+server.on('unsubscribed', function(topic, client) {
+    console.log('unsubscribed : ', topic);
+});
