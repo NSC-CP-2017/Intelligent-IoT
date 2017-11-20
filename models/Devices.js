@@ -1,15 +1,16 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var schemaDevices = new Schema({
-    name: String,
+    name : String,
+    owner : Schema.objectID,
     deviceID: String,
     deviceKey: String,
     online: Boolean,
     lastOnine: Date,
     authorized: Boolean,
-    data: Array,
     position: Array,
-    externalData: Array 
+    internalData : Array,
+    externalData : Array 
 });
 module.exports = mongoose.model('devices',schemaDevices);
 
