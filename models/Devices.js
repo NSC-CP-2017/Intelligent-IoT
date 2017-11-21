@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var schemaDevices = new Schema({
     name : String,
-    owner : Schema.objectID,
+    owner : Schema.ObjectId,
     deviceID: String,
     deviceKey: String,
     online: Boolean,
