@@ -13,4 +13,4 @@ var schemaUsers = new Schema({
     devicecount : Number
 });
 
-module.exports = mongoose.model('projects',schemaProjects);
+module.exports = mongoose.model('users',schemaUsers);

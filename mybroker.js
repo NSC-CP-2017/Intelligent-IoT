@@ -2,13 +2,15 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var Projects = require('./models/Projects');
 var Devices = require('./models/Devices');
+var Users = require('./models/Users');
+var Data = require('./models/Data');
 
 mongoose.connect('mongodb://localhost/IntelligentThings');
 
 var mosca = require('mosca');
 
 var pubsub = {
-    type: 'mongo',		
+    type: 'mongo',
     url: 'mongodb://localhost:27017/mqtt',
     pubsubCollection: 'pubsub',
     mongo: {}
@@ -42,7 +44,7 @@ var setDeviceOnline = function(deviceID,isOnline){
 //Accepts the connection if the username and password are valid
 var authenticate = function(client, username, password, callback) {
     console.log('authentication...')
-    var authorized = false; 
+    var authorized = false;
     //console.log("deviceID:",username.toString().trim(),"  deviceKey:",password.toString().trim());
     Devices.findOne({deviceID:username.toString().trim(),deviceKey:password.toString().trim()},function(err,device){
         if (device !== null){
@@ -63,7 +65,7 @@ var authorizePublish = function(client, topic, payload, callback) {
     //console.log('authorize published :',client.deviceID == topic[0] && 'publish' == topic[1]);
     callback(null, client.deviceID === topic[0] && 'pub' === topic[1]);
 };
-  
+
 // In this case the client authorized as alice can subscribe to /users/alice taking
 // the username from the topic and verifing it is the same of the authorized user
 var authorizeSubscribe = function(client, topic, callback) {
@@ -72,8 +74,8 @@ var authorizeSubscribe = function(client, topic, callback) {
 };
 
 server.on('clientConnected', function(client) {
-    console.log('client connected :',client.id);	
-    setDeviceOnline(client.deviceID,true);	
+    console.log('client connected :',client.id);
+    setDeviceOnline(client.deviceID,true);
 });
 
 server.on('clientDisconnected', function(client) {
@@ -90,7 +92,7 @@ function setup() {
 };
 
 // fired when a message is received
-server.on('published', function(packet, client) {  
+server.on('published', function(packet, client) {
     var topic = packet.topic.split('/');
     if (topic[1] == 'pub'){
         var data = JSON.parse(packet.payload.toString());
