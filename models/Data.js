@@ -4,7 +4,7 @@ var schemaData = new Schema({
     type : String,
     ownerDevice : Schema.ObjectId,
     position: Array,
-    value : Number,
+    value : Array,
     lastUpdate : Date
 });
 module.exports = mongoose.model('data',schemaData);
