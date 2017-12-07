@@ -46,6 +46,6 @@ device1.save((err,device)=>{
 device2.save((err,device)=>{
     if (err) console.log(err);
 });
-device3.save((err,device)=>{
+device1.save((err,device)=>{
     if (err) console.log(err);
 });

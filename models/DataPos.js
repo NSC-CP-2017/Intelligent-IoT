@@ -3,7 +3,8 @@ var Schema = mongoose.Schema;
 var schemaData = new Schema({
     type : String,
     ownerDevice : Schema.ObjectId,
-    value : Array,
+    lat : Number,
+    lon : Number,
     timeStamp : Number,
 });
-module.exports = mongoose.model('data',schemaData);
+module.exports = mongoose.model('datapos',schemaData);

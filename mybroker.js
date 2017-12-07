@@ -63,14 +63,14 @@ var authorizePublish = function(client, topic, payload, callback) {
     //console.log("deviceID : ",client.deviceID);
     //console.log(topic);
     //console.log('authorize published :',client.deviceID == topic[0] && 'publish' == topic[1]);
-    callback(null, client.deviceID === topic[0] && 'pub' === topic[1]);
+    callback(null, client.id == topic[0] && 'pub' === topic[1]);
 };
 
 // In this case the client authorized as alice can subscribe to /users/alice taking
 // the username from the topic and verifing it is the same of the authorized user
 var authorizeSubscribe = function(client, topic, callback) {
     var topic = topic.split('/');
-    callback(null, client.deviceID == topic[0] && 'sub' == topic[1]);
+    callback(null, client.id == topic[0] && 'sub' == topic[1]);
 };
 
 server.on('clientConnected', function(client) {
@@ -94,9 +94,16 @@ function setup() {
 // fired when a message is received
 server.on('published', function(packet, client) {
     var topic = packet.topic.split('/');
+    console.log("publish jaaa");
     if (topic[1] == 'pub'){
         var data = JSON.parse(packet.payload.toString());
-        updateDeviceData(topic[0],data["value"],data["lat"],data["lon"]);
+        if (data["value"] != null && data["lat"] != null && data["lon"] != null){
+            console.log("publish correct format ja");
+            //updateDeviceData(topic[0],data["value"],data["lat"],data["lon"]);
+        }
+        else {
+            console.log("publish incorrect format ja");
+        }
     }
 });
 
