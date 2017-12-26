@@ -3,14 +3,14 @@ var Schema = mongoose.Schema;
 var schemaDevices = new Schema({
     name : String,
     owner : Schema.ObjectId,
-    deviceID: String,
     deviceKey: String,
+    deviceSecret: String,
     online: Boolean,
     lastOnine: Date,
     authorized: Boolean,
+    joinData : Array,
     position: Array,
-    internalData : Array,
-    externalData : Array 
+    data : Array
 });
 module.exports = mongoose.model('devices',schemaDevices);
 

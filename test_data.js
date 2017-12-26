@@ -12,9 +12,9 @@ var device1 = new Devices({
     online: false,
     lastOnine: new Date(),
     authorized: true,
+    joinData : [],
     position: [],
     internalData : [],
-    externalData : [] 
 });
 
 var device2 = new Devices({
@@ -24,9 +24,9 @@ var device2 = new Devices({
     online: false,
     lastOnine: new Date(),
     authorized: true,
+    joinData : [],
     position: [],
-    internalData : [],
-    externalData : [] 
+    internalData : []
 });
 
 var device3 = new Devices({
@@ -36,9 +36,9 @@ var device3 = new Devices({
     online: false,
     lastOnine: new Date(),
     authorized: true,
+    joinData : [],
     position: [],
-    internalData : [],
-    externalData : [] 
+    internalData : []
 });
 device1.save((err,device)=>{
     if (err) console.log(err);
@@ -46,6 +46,6 @@ device1.save((err,device)=>{
 device2.save((err,device)=>{
     if (err) console.log(err);
 });
-device1.save((err,device)=>{
+device3.save((err,device)=>{
     if (err) console.log(err);
 });
